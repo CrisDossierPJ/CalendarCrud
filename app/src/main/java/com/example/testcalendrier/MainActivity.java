@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(DialogInterface dialogInterface, int which) {
                 String txt = input.getText().toString();
-                event.setTitle(txt);
+                updateEvent_test(event.getEvent_ID(),txt);
                 //Toast.makeText()
             }
         });
@@ -228,40 +228,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ad.show();
     }
 
-    public void updateEvent_test(long eventID){
+    public void updateEvent_test(long eventID, String title){
         ContentResolver cr = getContentResolver();
         ContentValues values = new ContentValues();
         Uri updateUri = null;
         // The new title for the event
-        values.put(CalendarContract.Events.TITLE, "Kickboxing");
-        updateUri = ContentUris.withAppendedId(CalendarContract.CONTENT_URI, eventID);
+        values.put(CalendarContract.Events.TITLE, title);
+        updateUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventID);
         int rows = cr.update(updateUri, values, null, null);
-        Log.i("", "Rows updated: " + rows);
     }
 
-    private void checkPermissions(int callbackId, String... permissionsId) {
-        boolean permissions = true;
-        for (String p : permissionsId) {
-            permissions = permissions && ContextCompat.checkSelfPermission(this, p) == 0;
-        }
-
-        if (!permissions)
-            ActivityCompat.requestPermissions(this, permissionsId, callbackId);
-    }
-    public void removeEvent(long eventID) {
-
-        final int callbackId = 42;
-        checkPermissions(callbackId, Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR);
-        // Submit the query
-        //Cursor cur = getContentResolver().query(uri, mProjection, selection, selectionArgs, null);
+    public void deleteEvent(long eventID){
         ContentResolver cr = getContentResolver();
         Uri deleteUri = null;
-
         deleteUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventID);
         int rows = cr.delete(deleteUri, null, null);
-        Toast.makeText(this, "Event deleted" + eventID, Toast.LENGTH_LONG).show();
-
-
     }
 
 

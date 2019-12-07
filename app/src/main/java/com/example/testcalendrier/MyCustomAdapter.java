@@ -63,16 +63,18 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
             @Override
             public void onClick(View v) {
                 //do something
-                list.remove(position); //or some other task
+                //or some other task
 
-               ((MainActivity)context).removeEvent(list.get(position).getEvent_ID());
+               ((MainActivity)context).deleteEvent(list.get(position).getEvent_ID());
+                list.remove(position);
                 notifyDataSetChanged();
             }
         });
         addBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                ((MainActivity)context).updateEvent_test(list.get(position).getEvent_ID());
+                ((MainActivity)context).updateEvent(list.get(position));
+
              notifyDataSetChanged();
             }
         });
