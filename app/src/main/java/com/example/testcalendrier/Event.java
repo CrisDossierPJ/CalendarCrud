@@ -23,6 +23,12 @@ public class Event {
         this.location = location;
         this.dateEnd = dateEnd;
     }
+    public Event(String Title, String location, long dateBegin, long dateEnd){
+        this.dateBegin = dateBegin;
+        this.Title = Title;
+        this.location = location;
+        this.dateEnd = dateEnd;
+    }
 
     public long getEvent_ID() {
         return Event_ID;

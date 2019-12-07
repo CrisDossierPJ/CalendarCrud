@@ -73,7 +73,7 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
         addBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                ((MainActivity)context).updateEvent(list.get(position));
+                ((MainActivity)context).updateEventDialog(list.get(position));
 
              notifyDataSetChanged();
             }

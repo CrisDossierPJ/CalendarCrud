@@ -1,11 +1,13 @@
 package com.example.testcalendrier;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.DatePickerDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -13,10 +15,12 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     Button show;
     Button add;
     Cursor cursor;
@@ -39,6 +43,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     EditText input;
     EditText edittext;
+
+    EditText title;
+    EditText location;
+    Button dateBegin;
+    Button dateEnd;
+    Button hourBegin;
+    Button hourEnd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,13 +61,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         edittext = (EditText) findViewById(R.id.editText2);
 
 
-
         show.setOnClickListener(this);
+        add.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
-        Log.d("hi", "ON LICKKKKKKKK");
+
         switch (v.getId()) {
             case R.id.show:
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
@@ -68,11 +79,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Log.d("hi", "à events");
                 }
                 //getCalendars();
-                readEvents(v,Integer.parseInt(edittext.getText().toString()));
+                readEvents(Integer.parseInt(edittext.getText().toString()));
 
                 break;
             case R.id.add:
-                addEvent(v,1);
+                addEvent(Integer.parseInt(edittext.getText().toString()));
         }
     }
 
@@ -84,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         // Projection array. Creating indices for this array instead of doing dynamic lookups improves performance.
-        final String[] EVENT_PROJECTION = new String[] {
+        final String[] EVENT_PROJECTION = new String[]{
                 CalendarContract.Calendars._ID,                           // 0
                 CalendarContract.Calendars.ACCOUNT_NAME,                  // 1
                 CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,         // 2
@@ -122,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         listView.setAdapter(stringArrayAdapter);
     }
 
-    public void readEvents(View view, long calID) {
+    public void readEvents(long calID) {
 
         String[] mProjection =
                 {
@@ -132,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         CalendarContract.Events.DTSTART,
                         CalendarContract.Events.DTEND,
                 };
-        final int ID_EVENT =0;
+        final int ID_EVENT = 0;
         final int EVENT_TITLE = 1;
         final int EVENT_LOCATION = 2;
         final int DTSART = 3;
@@ -148,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Cursor cur = getContentResolver().query(uri, mProjection, selection, selectionArgs, null);
 
 
-
         ArrayList<Event> events = new ArrayList<>();
         while (cur.moveToNext()) {
 
@@ -158,51 +168,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String title = cur.getString(EVENT_TITLE);
             String location = cur.getString(EVENT_LOCATION);
 
-            Event event = new Event(eventID,calID,title,location,beginVal,beginVal);
+            Event event = new Event(eventID, calID, title, location, beginVal, beginVal);
             Toast.makeText(this, "EVENT_TITLE", Toast.LENGTH_SHORT).show();
             events.add(event);
         }
 
-       // ArrayAdapter<String> stringArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1, events);
+        // ArrayAdapter<String> stringArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1, events);
         MyCustomAdapter adap = new MyCustomAdapter(events, this);
         listView.setAdapter(adap);
     }
-    public void addEvent(View v, long calID) {
-        String eventTitle = "Jazzercise";
-                if (isEventAlreadyExist(eventTitle)) {
-            Snackbar.make(v, "Jazzercise event already exist!", Snackbar.LENGTH_SHORT).show();
-            return;
-        }
 
+    public void addEvent(long calID) {
+        Log.d("hi", "ON LICKKKKKKKK");
         long startMillis = 0;
         long endMillis = 0;
         Calendar beginTime = Calendar.getInstance();
-        beginTime.set(2017, 11, 15, 6, 00);
+        beginTime.set(2019, 12, 14, 7, 30);
         startMillis = beginTime.getTimeInMillis();
         Calendar endTime = Calendar.getInstance();
-        endTime.set(2017, 11, 15, 8, 00);
+        endTime.set(2019, 12, 14, 8, 45);
         endMillis = endTime.getTimeInMillis();
+
+
+
+
 
         ContentResolver cr = getContentResolver();
         ContentValues values = new ContentValues();
         values.put(CalendarContract.Events.DTSTART, startMillis);
         values.put(CalendarContract.Events.DTEND, endMillis);
-        values.put(CalendarContract.Events.TITLE, "Jazzercise");
-        values.put(CalendarContract.Events.DESCRIPTION, "Group workout");
+        values.put(CalendarContract.Events.TITLE, "azeeaz");
+        values.put(CalendarContract.Events.DESCRIPTION, "aze");
         values.put(CalendarContract.Events.CALENDAR_ID, calID);
         values.put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles");
-        values.put(CalendarContract.Events.ORGANIZER, "google_calendar@gmail.com");
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
-            Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);
-            long eventID = Long.parseLong(uri.getLastPathSegment());
-            Log.i("Calendar", "Event Created, the event id is: " + eventID);
-            Snackbar.make(v, "Jazzercise event added!", Snackbar.LENGTH_SHORT).show();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+            //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_CALENDAR}, MY_PERMISSIONS_REQUEST_WRITE_CALENDAR);
+            return;
         }
-
+        Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);
+        long eventID = Long.parseLong(uri.getLastPathSegment());
+        Log.d("LALLAALLALALA",""+eventID);
     }
 
-    public void updateEvent(final Event event){
+    public void updateEventDialog(final Event event){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Personal Details");
         builder.setIcon(R.drawable.ic_launcher_background);
@@ -214,7 +222,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(DialogInterface dialogInterface, int which) {
                 String txt = input.getText().toString();
-                updateEvent_test(event.getEvent_ID(),txt);
+                updateEvent(event.getEvent_ID(),txt);
+                readEvents(event.getCalendar_ID());
                 //Toast.makeText()
             }
         });
@@ -228,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ad.show();
     }
 
-    public void updateEvent_test(long eventID, String title){
+    public void updateEvent(long eventID, String title){
         ContentResolver cr = getContentResolver();
         ContentValues values = new ContentValues();
         Uri updateUri = null;
@@ -245,37 +254,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int rows = cr.delete(deleteUri, null, null);
     }
 
-
-    private boolean isEventAlreadyExist(String eventTitle) {
-        final String[] INSTANCE_PROJECTION = new String[] {
-                CalendarContract.Instances.EVENT_ID,      // 0
-                CalendarContract.Instances.BEGIN,         // 1
-                CalendarContract.Instances.TITLE          // 2
-        };
-
-        long startMillis = 0;
-        long endMillis = 0;
-        Calendar beginTime = Calendar.getInstance();
-        beginTime.set(2017, 11, 15, 6, 00);
-        startMillis = beginTime.getTimeInMillis();
-        Calendar endTime = Calendar.getInstance();
-        endTime.set(2017, 11, 15, 8, 00);
-        endMillis = endTime.getTimeInMillis();
-
-        // The ID of the recurring event whose instances you are searching for in the Instances table
-        String selection = CalendarContract.Instances.TITLE + " = ?";
-        String[] selectionArgs = new String[] {eventTitle};
-
-        // Construct the query with the desired date range.
-        Uri.Builder builder = CalendarContract.Instances.CONTENT_URI.buildUpon();
-        ContentUris.appendId(builder, startMillis);
-        ContentUris.appendId(builder, endMillis);
-
-        // Submit the query
-        Cursor cur =  getContentResolver().query(builder.build(), INSTANCE_PROJECTION, selection, selectionArgs, null);
-
-        return cur.getCount() > 0;
-    }
 
 
 
