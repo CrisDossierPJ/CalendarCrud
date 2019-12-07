@@ -19,6 +19,7 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
 
 
 
+
     public MyCustomAdapter(ArrayList<Event> list, Context context) {
         this.list = list;
         this.context = context;
