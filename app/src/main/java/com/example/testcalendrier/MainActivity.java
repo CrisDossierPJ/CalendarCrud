@@ -139,13 +139,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final int DEND = 4;
         // Submit the query
         Uri uri = CalendarContract.Events.CONTENT_URI;
-        String selection = CalendarContract.Events.CALENDAR_ID + " = ?";
+        String selection = CalendarContract.Instances.CALENDAR_ID + " = ?";
         String[] selectionArgs = new String[]{"" + calID};
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
             //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_CALENDAR}, MY_PERMISSIONS_REQUEST_WRITE_CALENDAR);
             return;
         }
         Cursor cur = getContentResolver().query(uri, mProjection, selection, selectionArgs, null);
+
 
 
         ArrayList<Event> events = new ArrayList<>();
