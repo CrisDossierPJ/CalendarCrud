@@ -17,6 +17,9 @@ public class Event  implements Serializable{
     private long dateEnd;
     private Context context;
 
+    public Event(){
+
+    }
     public Event(long Event_id, long calendar_ID, String Title, String location, long dateBegin, long dateEnd){
         this.dateBegin = dateBegin;
         this.calendar_ID = calendar_ID;

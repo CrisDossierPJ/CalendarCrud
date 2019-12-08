@@ -5,8 +5,6 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -14,13 +12,11 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
-import android.os.Parcelable;
 import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -34,12 +30,12 @@ import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Calendar;
 
-public class calendar_fragment extends Fragment implements View.OnClickListener{
+public class calendar_fragment extends Fragment implements View.OnClickListener {
     Context context;
     Button show;
     Button add;
+    Button addCalendar;
     Cursor cursor;
     ListView listView;
     EditText input;
@@ -59,15 +55,15 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
         add = (Button) v.findViewById(R.id.add);
         listView = (ListView) v.findViewById(R.id.listview);
         edittext = (EditText) v.findViewById(R.id.editText2);
-
+        addCalendar = (Button) v.findViewById(R.id.addCalendar);
         context = v.getContext();
 
         show.setOnClickListener(this);
         add.setOnClickListener(this);
+        addCalendar.setOnClickListener(this);
 
         return v;
     }
-
 
 
     @Override
@@ -89,23 +85,26 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
 
                 break;
             case R.id.add:
-                add_event addevent = new add_event();
+
+                action_event addevent = new action_event();
                 bundle = new Bundle();
-                bundle.putLong("calID",Integer.parseInt(edittext.getText().toString()));
+                bundle.putString("action", "add");
+                bundle.putLong("calID", Integer.parseInt(edittext.getText().toString()));
                 addevent.setArguments(bundle);
                 FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.activity_main, addevent);
                 fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
                 //addEvent(Integer.parseInt(edittext.getText().toString()));
-
                 break;
+            case R.id.addCalendar:
+                createCalendar();
 
         }
     }
 
 
-    /*public void getCalendars() {
+    public void getCalendars() {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_CALENDAR}, 7);
             return;
@@ -115,15 +114,24 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
         final String[] EVENT_PROJECTION = new String[]{
                 CalendarContract.Calendars._ID,                           // 0
                 CalendarContract.Calendars.ACCOUNT_NAME,                  // 1
-                CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,         // 2
-                CalendarContract.Calendars.OWNER_ACCOUNT                  // 3
+                CalendarContract.Calendars.ACCOUNT_TYPE,         // 2
+                CalendarContract.Calendars.NAME,
+                CalendarContract.Calendars.CALENDAR_COLOR,
+                CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+                CalendarContract.Calendars.OWNER_ACCOUNT,
+                CalendarContract.Calendars.CALENDAR_DISPLAY_NAME
+                // 3
         };
 
         // The indices for the projection array above.
         final int PROJECTION_ID_INDEX = 0;
-        final int PROJECTION_ACCOUNT_NAME_INDEX = 1;
-        final int PROJECTION_DISPLAY_NAME_INDEX = 2;
-        final int PROJECTION_OWNER_ACCOUNT_INDEX = 3;
+        final int PROJECTION_ACCOUNT_ACCOUNT_NAME = 1;
+        final int PROJECTION_DISPLAY_ACCOUNT_TYPE = 2;
+        final int PROJECTION_NAME = 3;
+        final int PROJECTION_CALENDAR_COLOR = 4;
+        final int PROJECTION_CALENDAR_ACCESS_LEVEL = 5;
+        final int PROJECTION_OWNER_ACCOUNT = 6;
+        final int PROJECTION_CALENDAR_DISPLAY_NAME = 7;
 
 
         ContentResolver contentResolver = context.getContentResolver();
@@ -132,23 +140,61 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
         ArrayList<String> calendarInfos = new ArrayList<>();
         while (cur.moveToNext()) {
             long calID = 0;
-            String displayName = null;
             String accountName = null;
-            String ownerName = null;
+            String accountType = null;
+            String name= null;
+            String calendarColor= null;
+            String calendar_acces_lvl= null;
+            String owner_account= null;
+            String calendar_display_name = null;
 
             // Get the field values
             calID = cur.getLong(PROJECTION_ID_INDEX);
-            displayName = cur.getString(PROJECTION_DISPLAY_NAME_INDEX);
-            accountName = cur.getString(PROJECTION_ACCOUNT_NAME_INDEX);
-            ownerName = cur.getString(PROJECTION_OWNER_ACCOUNT_INDEX);
+            accountName = cur.getString(PROJECTION_ACCOUNT_ACCOUNT_NAME);
+            accountType = cur.getString(PROJECTION_DISPLAY_ACCOUNT_TYPE);
+            name = cur.getString(PROJECTION_NAME);
+            calendarColor = cur.getString(PROJECTION_CALENDAR_COLOR);
+            calendar_acces_lvl = cur.getString(PROJECTION_CALENDAR_ACCESS_LEVEL);
+            owner_account = cur.getString(PROJECTION_OWNER_ACCOUNT);
+            calendar_display_name = cur.getString(PROJECTION_CALENDAR_DISPLAY_NAME);
 
-            String calendarInfo = String.format("Calendar ID: %s\nDisplay Name: %s\nAccount Name: %s\nOwner Name: %s", calID, displayName, accountName, ownerName);
+
+
+            String calendarInfo = String.format("Calendar ID: %s\naccountName: %s\naccountType %s\nname: %s\ncalendarColor : %s\ncalendar_acces_lvl : %s\nowner_account :%s\ncalendar_display_name : %s ",
+                    calID, accountName, accountType, name,calendarColor,calendar_acces_lvl,owner_account,calendar_display_name);
             calendarInfos.add(calendarInfo);
         }
 
-        ArrayAdapter<String> stringArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1, calendarInfos);
+        ArrayAdapter stringArrayAdapter = new ArrayAdapter<>(this.context, android.R.layout.simple_list_item_1, android.R.id.text1, calendarInfos);
         listView.setAdapter(stringArrayAdapter);
-    }*/
+    }
+
+    public void createCalendar() {
+        ContentResolver cr = context.getContentResolver();
+        ContentValues values = new ContentValues();
+        values.put(CalendarContract.Calendars.ACCOUNT_NAME, "christianattiacgi@gmail.com");
+        values.put(CalendarContract.Calendars.ACCOUNT_TYPE, "com.google");
+        values.put(CalendarContract.Calendars.NAME, "MonTest");
+        values.put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, "MonTest");
+        values.put(CalendarContract.Calendars.CALENDAR_COLOR, "-6299161");
+        values.put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, "200");
+        values.put(CalendarContract.Calendars.OWNER_ACCOUNT, "christianattiacgi@gmail.com");
+
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+            //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_CALENDAR}, MY_PERMISSIONS_REQUEST_WRITE_CALENDAR);
+            return;
+        }
+
+        cr.insert(asSyncAdapter(CalendarContract.Calendars.CONTENT_URI,"christianattiacgi@gmail.com","com.google"), values);
+        Toast.makeText(context, "Calendar created ! ", Toast.LENGTH_SHORT).show();
+        getCalendars();
+    }
+    public static Uri asSyncAdapter(Uri uri, String accountName, String accountType) {
+        return uri.buildUpon()
+                .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, accountName)
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, accountType).build();
+    }
 
     public void readEvents(long calID) {
 
@@ -202,9 +248,10 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
         Log.d("---app", String.format("startMillis : %d, endMillis : %d", event.getDateBegin(), event.getDateEnd()));
 
 
-        update_event updateevent = new update_event();
+        action_event updateevent = new action_event();
 
         bundle = new Bundle();
+        bundle.putString("action","update");
         bundle.putSerializable("event", (Serializable) event);
         bundle.putLong("calID",Integer.parseInt(edittext.getText().toString()));
         bundle.putString("titleEvent", event.getTitle());

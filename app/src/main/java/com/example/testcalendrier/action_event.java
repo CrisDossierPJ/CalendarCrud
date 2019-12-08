@@ -7,9 +7,19 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
 import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,19 +28,17 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
 
-public class update_event extends Fragment implements View.OnClickListener{
+public class action_event extends Fragment implements View.OnClickListener{
     Context context;
     Calendar beginTime = Calendar.getInstance();
     Calendar endTime=Calendar.getInstance();
@@ -51,11 +59,8 @@ public class update_event extends Fragment implements View.OnClickListener{
     int iyear ;
     int imonthOfYear;
     int idayOfMonth;
-    Event event ;
-
-    SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
-    Date date = new Date(System.currentTimeMillis());
-
+    String action;
+    Event event = new Event();
 
     private int mYear, mMonth, mDay, mHour, mMinute;
     @Nullable
@@ -72,29 +77,31 @@ public class update_event extends Fragment implements View.OnClickListener{
         btn_select_dateEnd = (Button) v.findViewById(R.id.btn_select_dateEnd);
         btn_validate = (Button) v.findViewById(R.id.btn_validate);
 
-        Bundle bundle = this.getArguments();
-        if(bundle != null){
-            calID = bundle.getLong("calID");
-            editTitle.setText(bundle.getString("titleEvent"));
-            startMillis = bundle.getLong("startMillis");
-            endMillis = bundle.getLong("endMillis");
-            event = (Event) bundle.getSerializable("event");
-
-            beginTime.setTimeInMillis(startMillis);
-            endTime.setTimeInMillis(endMillis);
-
-            editDateBegin.setText(beginTime.getTime().toString());
-            editDateEnd.setText(endTime.getTime().toString());
-        }
-
-
         btn_select_dateBegin.setOnClickListener(this);
         btn_select_dateEnd.setOnClickListener(this);
         btn_validate.setOnClickListener(this);
 
+        Bundle bundle = this.getArguments();
+
+        if(bundle != null){
+            action = bundle.getString("action");
+            if(action.equals("add")){
+                calID = bundle.getLong("calID");
+            }else if(action.equals("update")){
+                calID = bundle.getLong("calID");
+                editTitle.setText(bundle.getString("titleEvent"));
+                startMillis = bundle.getLong("startMillis");
+                endMillis = bundle.getLong("endMillis");
+                event = (Event) bundle.getSerializable("event");
+                beginTime.setTimeInMillis(startMillis);
+                endTime.setTimeInMillis(endMillis);
+                editDateBegin.setText(beginTime.getTime().toString());
+                editDateEnd.setText(endTime.getTime().toString());
+            }
+
+        }
         return v;
     }
-
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -109,16 +116,62 @@ public class update_event extends Fragment implements View.OnClickListener{
             case R.id.btn_validate:
                 String txt = "";
                 txt = editTitle.getText().toString();
-                event.setTitle(txt);
-                event.setDateBegin(beginTime.getTimeInMillis());
-                event.setDateEnd(endTime.getTimeInMillis());
-                updateEvent(event);
+
+                if(!hasErrors(event)){
+                    if(action.equals("add")){
+                        if(!hasErrors(event)){
+                            addEvent(calID,beginTime,endTime,txt);
+                            Toast.makeText(context, "Event added !", Toast.LENGTH_SHORT).show();
+                        }
+
+                    }else if(action.equals("update")){
+                        event.setTitle(txt);
+                        event.setDateBegin(beginTime.getTimeInMillis());
+                        event.setDateEnd(endTime.getTimeInMillis());
+                        updateEvent(event);
+
+                    }
+
+                    FragmentManager manager = getFragmentManager();
+                    FragmentTransaction transaction = manager.beginTransaction();
+                    transaction.replace(R.id.activity_main, new calendar_fragment(), "Calendar_Fragment");
+                    transaction.commit();
+                }
+
                 break;
         }
 
 
-        }
+    }
 
+    /* If there are errors, return true, else false */
+    public boolean hasErrors(Event event){
+        boolean hasError = false;
+
+        if(editTitle.getText().toString().matches("")){
+            editTitle.setError("You did not enter a title");
+            editTitle.requestFocus();
+            hasError = true;
+        }
+        else if(editDateBegin.getText().toString().matches("")){editDateBegin.setError("You did not enter a begin date");
+
+            editDateBegin.setError("You did not enter a begin date");
+            editDateBegin.requestFocus();
+            hasError = true;
+
+        }
+        else if(editDateEnd.getText().toString().matches("")){
+            editDateEnd.setError("You did not enter a ending date");
+            editDateEnd.requestFocus();
+            hasError = true;
+        }
+        else if(beginTime.compareTo(endTime) > 0){
+            editDateBegin.setError("Begin date is after end date");
+            editDateBegin.requestFocus();
+            hasError = true;
+        }
+        return hasError;
+    }
 
 public void showdiag(final Calendar calendar, final EditText edit){
     final Calendar c = Calendar.getInstance();
@@ -157,6 +210,33 @@ public void showdiag(final Calendar calendar, final EditText edit){
 
 
 }
+    public void addEvent(long calID,Calendar begin,Calendar end, String title) {
+
+        startMillis = begin.getTimeInMillis();
+        endMillis = end.getTimeInMillis();
+        ContentResolver cr = context.getContentResolver();
+        ContentValues values = new ContentValues();
+        event.setDateBegin(startMillis);
+        event.setCalendar_ID(calID);
+        event.setTitle(title);
+        event.setDateEnd(endMillis);
+            values.put(CalendarContract.Events.DTSTART, startMillis);
+            values.put(CalendarContract.Events.DTEND, endMillis);
+            values.put(CalendarContract.Events.TITLE, title);
+            values.put(CalendarContract.Events.DESCRIPTION, "TEST");
+            values.put(CalendarContract.Events.CALENDAR_ID, calID);
+            values.put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles");
+
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+                //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_CALENDAR}, MY_PERMISSIONS_REQUEST_WRITE_CALENDAR);
+                return;
+            }
+            cr.insert(CalendarContract.Events.CONTENT_URI, values);
+
+
+
+    }
+
     public void updateEvent(Event event){
         ContentResolver cr = context.getContentResolver();
         ContentValues values = new ContentValues();
@@ -168,7 +248,6 @@ public void showdiag(final Calendar calendar, final EditText edit){
         updateUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, event.getEvent_ID());
         cr.update(updateUri, values, null, null);
     }
-
 
 
 }
