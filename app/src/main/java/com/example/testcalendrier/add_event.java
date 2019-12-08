@@ -15,6 +15,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.provider.CalendarContract;
 import android.util.Log;
@@ -26,6 +28,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -95,13 +98,53 @@ public class add_event extends Fragment implements View.OnClickListener{
             case R.id.btn_validate:
                 String txt = "";
                 txt = editTitle.getText().toString();
-                addEvent(calID,beginTime,endTime,txt);
+
+                if(!hasErrors()){
+                    addEvent(calID,beginTime,endTime,txt);
+
+                    Toast.makeText(context, "Event added !", Toast.LENGTH_SHORT).show();
+
+                    FragmentManager manager = getFragmentManager();
+                    FragmentTransaction transaction = manager.beginTransaction();
+                    transaction.replace(R.id.activity_main, new calendar_fragment(), "Calendar_Fragment");
+                    transaction.commit();
+                }
+
                 break;
         }
 
 
+    }
+
+    /* If there are errors, return true, else false */
+    public boolean hasErrors(){
+        boolean hasError = false;
+
+        if(editTitle.getText().toString().matches("")){
+            editTitle.setError("You did not enter a title");
+            editTitle.requestFocus();
+            hasError = true;
+        }
+        else if(editDateBegin.getText().toString().matches("")){editDateBegin.setError("You did not enter a begin date");
+
+            editDateBegin.setError("You did not enter a begin date");
+            editDateBegin.requestFocus();
+            hasError = true;
+
+        }
+        else if(editDateEnd.getText().toString().matches("")){
+            editDateEnd.setError("You did not enter a ending date");
+            editDateEnd.requestFocus();
+            hasError = true;
+        }
+        else if(beginTime.compareTo(endTime) > 0){
+            editDateBegin.setError("Begin date is after end date");
+            editDateBegin.requestFocus();
+            hasError = true;
         }
 
+        return hasError;
+    }
 
 public void showdiag(final Calendar calendar, final EditText edit){
     final Calendar c = Calendar.getInstance();
