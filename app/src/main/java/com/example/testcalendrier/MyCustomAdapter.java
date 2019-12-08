@@ -16,13 +16,14 @@ import java.util.ArrayList;
 public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
     private ArrayList<Event> list = new ArrayList<Event>();
     private Context context;
+    private calendar_fragment fragment;
 
 
 
-
-    public MyCustomAdapter(ArrayList<Event> list, Context context) {
+    public MyCustomAdapter(ArrayList<Event> list, Context context, calendar_fragment fragment) {
         this.list = list;
         this.context = context;
+        this.fragment = fragment;
     }
 
     @Override
@@ -45,6 +46,7 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         View view = convertView;
+
         if (view == null) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = inflater.inflate(R.layout.calendar_view, null);
@@ -65,7 +67,7 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
                 //do something
                 //or some other task
 
-               ((MainActivity)context).deleteEvent(list.get(position).getEvent_ID());
+                fragment.deleteEvent(list.get(position).getEvent_ID());
                 list.remove(position);
                 notifyDataSetChanged();
             }
@@ -73,7 +75,7 @@ public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
         addBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                ((MainActivity)context).updateEventDialog(list.get(position));
+                fragment.updateEventDialog(list.get(position));
 
              notifyDataSetChanged();
             }
