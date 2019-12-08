@@ -55,9 +55,6 @@ public class add_event extends Fragment implements View.OnClickListener{
     int imonthOfYear;
     int idayOfMonth;
 
-    SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
-    Date date = new Date(System.currentTimeMillis());
-
 
     private int mYear, mMonth, mDay, mHour, mMinute;
     @Nullable

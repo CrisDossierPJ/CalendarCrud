@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.os.Parcelable;
 import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,6 +32,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -180,10 +182,11 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
             // Get the field values
             long eventID = cur.getLong(ID_EVENT);
             long beginVal = cur.getLong(DTSART);
+            long endVal = cur.getLong(DEND);
             String title = cur.getString(EVENT_TITLE);
             String location = cur.getString(EVENT_LOCATION);
 
-            Event event = new Event(eventID, calID, title, location, beginVal, beginVal);
+            Event event = new Event(eventID, calID, title, location, beginVal, endVal);
             Toast.makeText(context, "EVENT_TITLE", Toast.LENGTH_SHORT).show();
             events.add(event);
         }
@@ -196,38 +199,13 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
 
 
     public void updateEventDialog(final Event event){
-        /*AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Personal Details");
-        builder.setIcon(R.drawable.ic_launcher_background);
-        builder.setMessage("Modifier evénements");
-        input = new EditText(context);
-        input.setText(event.getTitle());
-        builder.setView(input);
-        builder.setPositiveButton("Valider", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int which) {
-                String txt = input.getText().toString();
-                updateEvent(event.getEvent_ID(),txt);
-                readEvents(event.getCalendar_ID());
-                //Toast.makeText()
-            }
-        });
-        builder.setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int which) {
-                dialogInterface.dismiss();
-            }
-        });
-        AlertDialog ad = builder.create();
-        ad.show();*/
-
-
         Log.d("---app", String.format("startMillis : %d, endMillis : %d", event.getDateBegin(), event.getDateEnd()));
 
 
         update_event updateevent = new update_event();
 
         bundle = new Bundle();
+        bundle.putSerializable("event", (Serializable) event);
         bundle.putLong("calID",Integer.parseInt(edittext.getText().toString()));
         bundle.putString("titleEvent", event.getTitle());
         bundle.putLong("startMillis", event.getDateBegin());
@@ -241,15 +219,7 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
         fragmentTransaction.commit();
     }
 
-    public void updateEvent(long eventID, String title){
-        ContentResolver cr = context.getContentResolver();
-        ContentValues values = new ContentValues();
-        Uri updateUri = null;
-        // The new title for the event
-        values.put(CalendarContract.Events.TITLE, title);
-        updateUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventID);
-        int rows = cr.update(updateUri, values, null, null);
-    }
+
 
     public void deleteEvent(long eventID){
         ContentResolver cr = context.getContentResolver();

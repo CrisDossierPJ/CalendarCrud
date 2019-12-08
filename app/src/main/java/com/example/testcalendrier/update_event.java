@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -50,6 +51,7 @@ public class update_event extends Fragment implements View.OnClickListener{
     int iyear ;
     int imonthOfYear;
     int idayOfMonth;
+    Event event ;
 
     SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
     Date date = new Date(System.currentTimeMillis());
@@ -76,7 +78,7 @@ public class update_event extends Fragment implements View.OnClickListener{
             editTitle.setText(bundle.getString("titleEvent"));
             startMillis = bundle.getLong("startMillis");
             endMillis = bundle.getLong("endMillis");
-
+            event = (Event) bundle.getSerializable("event");
 
             beginTime.setTimeInMillis(startMillis);
             endTime.setTimeInMillis(endMillis);
@@ -107,7 +109,10 @@ public class update_event extends Fragment implements View.OnClickListener{
             case R.id.btn_validate:
                 String txt = "";
                 txt = editTitle.getText().toString();
-                //addEvent(calID,beginTime,endTime,txt);
+                event.setTitle(txt);
+                event.setDateBegin(beginTime.getTimeInMillis());
+                event.setDateEnd(endTime.getTimeInMillis());
+                updateEvent(event);
                 break;
         }
 
@@ -152,28 +157,18 @@ public void showdiag(final Calendar calendar, final EditText edit){
 
 
 }
-    /*public void addEvent(long calID,Calendar begin,Calendar end, String title) {
-
-
-
-        startMillis = begin.getTimeInMillis();
-        endMillis = end.getTimeInMillis();
+    public void updateEvent(Event event){
         ContentResolver cr = context.getContentResolver();
         ContentValues values = new ContentValues();
-        values.put(CalendarContract.Events.DTSTART, startMillis);
-        values.put(CalendarContract.Events.DTEND, endMillis);
-        values.put(CalendarContract.Events.TITLE, title);
-        values.put(CalendarContract.Events.DESCRIPTION, "TEST");
-        values.put(CalendarContract.Events.CALENDAR_ID, calID);
-        values.put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles");
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-            //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_CALENDAR}, MY_PERMISSIONS_REQUEST_WRITE_CALENDAR);
-            return;
-        }
-        Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);
-        long eventID = Long.parseLong(uri.getLastPathSegment());
-        Log.d("LALLAALLALALA",""+eventID);
-    }*/
+        Uri updateUri = null;
+        // The new title for the event
+        values.put(CalendarContract.Events.TITLE, event.getTitle());
+        values.put(CalendarContract.Events.DTSTART, event.getDateBegin());
+        values.put(CalendarContract.Events.DTEND, event.getDateEnd());
+        updateUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, event.getEvent_ID());
+        cr.update(updateUri, values, null, null);
+    }
+
 
 
 }

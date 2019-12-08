@@ -3,10 +3,12 @@ package com.example.testcalendrier;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Parcelable;
 
+import java.io.Serializable;
 import java.net.URI;
 
-public class Event {
+public class Event  implements Serializable{
     private long Event_ID;
     private long calendar_ID;
     private String Title;
