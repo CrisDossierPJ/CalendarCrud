@@ -30,6 +30,8 @@ import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class calendar_fragment extends Fragment implements View.OnClickListener {
     Context context;
@@ -43,6 +45,9 @@ public class calendar_fragment extends Fragment implements View.OnClickListener 
 
     Bundle bundle;
     FragmentTransaction fragmentTransaction;
+
+
+
 
 
     @Nullable
@@ -98,7 +103,7 @@ public class calendar_fragment extends Fragment implements View.OnClickListener 
                 //addEvent(Integer.parseInt(edittext.getText().toString()));
                 break;
             case R.id.addCalendar:
-                createCalendar();
+                addCalendar();
 
         }
     }
@@ -168,27 +173,35 @@ public class calendar_fragment extends Fragment implements View.OnClickListener 
         ArrayAdapter stringArrayAdapter = new ArrayAdapter<>(this.context, android.R.layout.simple_list_item_1, android.R.id.text1, calendarInfos);
         listView.setAdapter(stringArrayAdapter);
     }
+    public void addCalendar() {
 
-    public void createCalendar() {
-        ContentResolver cr = context.getContentResolver();
-        ContentValues values = new ContentValues();
-        values.put(CalendarContract.Calendars.ACCOUNT_NAME, "christianattiacgi@gmail.com");
-        values.put(CalendarContract.Calendars.ACCOUNT_TYPE, "com.google");
-        values.put(CalendarContract.Calendars.NAME, "MonTest");
-        values.put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, "MonTest");
-        values.put(CalendarContract.Calendars.CALENDAR_COLOR, "-6299161");
-        values.put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, "200");
-        values.put(CalendarContract.Calendars.OWNER_ACCOUNT, "christianattiacgi@gmail.com");
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(CalendarContract.Calendars.ACCOUNT_NAME, "newtrip@roadtripplanner.com");
+        contentValues.put(CalendarContract.Calendars.ACCOUNT_TYPE, "newtrip.roadtripplanner.com");
+        contentValues.put(CalendarContract.Calendars.NAME, "New Trip");
+        contentValues.put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, "Trip to the USA");
+        contentValues.put(CalendarContract.Calendars.CALENDAR_COLOR, "232323");
+        contentValues.put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER);
+        contentValues.put(CalendarContract.Calendars.OWNER_ACCOUNT, "newtrip@roadtripplanner.com");
+        contentValues.put(CalendarContract.Calendars.ALLOWED_REMINDERS, "METHOD_ALERT, METHOD_EMAIL, METHOD_ALARM");
+        contentValues.put(CalendarContract.Calendars.ALLOWED_ATTENDEE_TYPES, "TYPE_OPTIONAL, TYPE_REQUIRED, TYPE_RESOURCE");
+        contentValues.put(CalendarContract.Calendars.ALLOWED_AVAILABILITY, "AVAILABILITY_BUSY, AVAILABILITY_FREE, AVAILABILITY_TENTATIVE");
+
 
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
             //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_CALENDAR}, MY_PERMISSIONS_REQUEST_WRITE_CALENDAR);
             return;
         }
 
-        cr.insert(asSyncAdapter(CalendarContract.Calendars.CONTENT_URI,"christianattiacgi@gmail.com","com.google"), values);
+        Uri uri = CalendarContract.Calendars.CONTENT_URI;
+        uri = uri.buildUpon().appendQueryParameter(android.provider.CalendarContract.CALLER_IS_SYNCADAPTER,"true")
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, "newtrip@roadtripplanner.com")
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, "newtrip.roadtripplanner.com").build();
         Toast.makeText(context, "Calendar created ! ", Toast.LENGTH_SHORT).show();
+        context.getContentResolver().insert(uri, contentValues);
         getCalendars();
     }
+
     public static Uri asSyncAdapter(Uri uri, String accountName, String accountType) {
         return uri.buildUpon()
                 .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
