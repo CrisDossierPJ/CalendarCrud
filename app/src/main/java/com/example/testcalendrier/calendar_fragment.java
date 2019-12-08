@@ -43,6 +43,9 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
     EditText input;
     EditText edittext;
 
+    Bundle bundle;
+    FragmentTransaction fragmentTransaction;
+
 
     @Nullable
     @Override
@@ -68,6 +71,7 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
     @Override
     public void onClick(View v) {
 
+
         switch (v.getId()) {
             case R.id.show:
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
@@ -84,7 +88,7 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
                 break;
             case R.id.add:
                 add_event addevent = new add_event();
-                Bundle bundle = new Bundle();
+                bundle = new Bundle();
                 bundle.putLong("calID",Integer.parseInt(edittext.getText().toString()));
                 addevent.setArguments(bundle);
                 FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
@@ -92,6 +96,9 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
                 fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
                 //addEvent(Integer.parseInt(edittext.getText().toString()));
+
+                break;
+
         }
     }
 
@@ -189,7 +196,7 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
 
 
     public void updateEventDialog(final Event event){
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        /*AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Personal Details");
         builder.setIcon(R.drawable.ic_launcher_background);
         builder.setMessage("Modifier evénements");
@@ -212,7 +219,26 @@ public class calendar_fragment extends Fragment implements View.OnClickListener{
             }
         });
         AlertDialog ad = builder.create();
-        ad.show();
+        ad.show();*/
+
+
+        Log.d("---app", String.format("startMillis : %d, endMillis : %d", event.getDateBegin(), event.getDateEnd()));
+
+
+        update_event updateevent = new update_event();
+
+        bundle = new Bundle();
+        bundle.putLong("calID",Integer.parseInt(edittext.getText().toString()));
+        bundle.putString("titleEvent", event.getTitle());
+        bundle.putLong("startMillis", event.getDateBegin());
+        bundle.putLong("endMillis", event.getDateEnd());
+
+        updateevent.setArguments(bundle);
+
+        fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.activity_main, updateevent);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
     }
 
     public void updateEvent(long eventID, String title){
